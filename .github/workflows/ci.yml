@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile all modules
+        run: python -m compileall -q lambdas scripts tests app.py visual_search_stack.py
+      - name: Offline tests (in-memory fakes, no AWS needed)
+        run: python -I tests/test_logic.py
+
+  cdk-synth:
+    # Checks the infrastructure code builds a CloudFormation template (default AWS backends).
+    runs-on: ubuntu-latest
+    env:
+      CDK_DEFAULT_ACCOUNT: "123456789012"
+      CDK_DEFAULT_REGION: us-east-1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: pip install -r requirements.txt
+      - run: npm install -g aws-cdk@2
+      - run: cdk synth --quiet
