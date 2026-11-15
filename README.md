@@ -96,6 +96,17 @@ QUEUE_URL=<IngestQueueUrl> python scripts/enqueue_catalog.py catalog.csv
 CSV: `product_id,name,brand,category,description,url,color,size,sku,barcode,price,currency,stock,image_s3_key`
 (`stock` = integer, or JSON per store such as `{"store1": 3, "store2": 0}`).
 
+## Tear down (after testing)
+
+```bash
+scripts/teardown.sh --dry-run     # lists what would be deleted; changes nothing
+scripts/teardown.sh               # asks you to type the stack name, then deletes
+```
+Needs only the AWS CLI. It deletes the CloudFormation stack (API, Lambdas, queues, roles, OpenSearch collection), then the
+resources CDK keeps on destroy (S3 image bucket, DynamoDB tables) and the Lambda log groups, and verifies nothing is left.
+Options: `--stack NAME`, `--region R`, `--yes` (no prompt). Data is deleted permanently. It does not remove the shared CDK
+bootstrap stack (`CDKToolkit`), nor a MySQL database or Solr server you run yourself.
+
 ## Efficiency at scale
 - Index size = styles × colours, not SKUs. Unchanged images are skipped on re-sync (image-hash registry).
 - Embedding and OCR run in parallel; catalog reads are batched. Everything is stateless and scales horizontally.
