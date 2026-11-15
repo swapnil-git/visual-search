@@ -3,6 +3,24 @@
 Image (and/or barcode) in → matching catalog product + exact variant out. One engine, several use cases
 (product search, store inventory check), pluggable backends. Default deployment is all-AWS.
 
+**Design doc:** [docs/DESIGN.md](docs/DESIGN.md) (goals, architecture, data model, API contract, variant resolution,
+testing strategy, scale, security, risks, rollout). This README is the hands-on guide.
+
+## Repository layout
+
+```
+lambdas/                    search.py, inventory.py (API handlers), ingest.py (SQS-fed catalog loader)
+lambdas/vsearch/            shared engine: pipeline.py, matching.py, ports.py (interfaces), config.py (adapter selection)
+lambdas/vsearch/adapters/   bedrock, opensearch, solr, dynamodb, mysql, rekognition, s3, local (test-only)
+visual_search_stack.py      AWS CDK stack (app.py, cdk.json)
+sql/schema.mysql.sql        MySQL schema, for CATALOG_STORE=mysql
+scripts/                    enqueue_catalog.py, generate_sample_catalog.py, local_server.py, e2e_test.py,
+                            load_sample_catalog.sh, teardown.sh, build_mysql_layer.sh
+tests/test_logic.py         offline unit tests
+docs/DESIGN.md              design doc
+.github/workflows/ci.yml    CI: unit tests, cdk synth, local end-to-end test
+```
+
 ## Architecture: ports and adapters
 
 ```
