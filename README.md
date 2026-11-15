@@ -90,12 +90,31 @@ Header `x-api-key`.
 
 ## Deploy
 
+**Prerequisites (check before the first deploy):**
+
+| Need | Check | Notes |
+|---|---|---|
+| Python 3.12 or 3.13 | `python3 --version` | Not 3.9, and not 3.14 or newer: the CDK's `typeguard` dependency breaks on newer Pythons (`ForwardRef._evaluate` error). On macOS use the python.org installer (3.13.17 is the last 3.13 with binaries); a source build needs OpenSSL, or pip fails with "ssl module is unavailable" |
+| Node.js 22 or 24 (LTS) | `node --version` | Required by the CDK CLI. Newer Node (e.g. 26) only prints a warning; silence it with `export JSII_SILENCE_WARNING_UNTESTED_NODE_VERSION=1` |
+| AWS CLI v2 + credentials | `aws sts get-caller-identity` | An IAM user whose policy allows CloudFormation, IAM, Lambda, S3, API Gateway, DynamoDB, SQS, OpenSearch Serverless and Bedrock. For a throwaway test account, AdministratorAccess is simplest; remove it afterwards |
+| A region with Titan Multimodal Embeddings | `aws configure get region` | us-east-1, us-west-2, ca-central-1, eu-central-1, eu-west-1/2/3, ap-south-1, ap-southeast-2, sa-east-1. **Not** us-west-1. The stack deploys to the CLI's region, so set it first: `aws configure set region us-west-2` |
+| Bedrock model invocation works | see the check below | Run it before deploying: it fails fast if your account is not enabled for Bedrock |
+
+Check that Bedrock works in your account and region (must print JSON, not an error):
 ```bash
-pip install -r requirements.txt
-cdk bootstrap
-cdk deploy                                   # OpenSearch Serverless + DynamoDB (default)
+aws bedrock-runtime invoke-model --model-id amazon.titan-embed-image-v1 \
+  --content-type application/json --cli-binary-format raw-in-base64-out \
+  --body '{"inputText":"red shirt"}' /tmp/bedrock-check.json && head -c 200 /tmp/bedrock-check.json
 ```
-Enable the embedding model in the Bedrock console first. Flags:
+
+Then, from the project folder:
+```bash
+python3 -m venv .venv && source .venv/bin/activate     # use python3.12 / python3.13 if python3 is older or newer
+pip install -r requirements.txt
+npx aws-cdk@2 bootstrap                               # once per account and region (or `cdk bootstrap` if installed globally)
+npx aws-cdk@2 deploy                                  # OpenSearch Serverless + DynamoDB (default); answer y to the IAM prompt
+```
+The first deploy takes about 4 minutes and prints `SearchUrl`, `InventoryCheckUrl`, `ImageBucketName` and `IngestQueueUrl`. Flags:
 
 | Flag | Effect |
 |---|---|
@@ -127,14 +146,16 @@ system end to end but does not measure accuracy on real products.
 | `sample-data/catalog_images/<product_id>/<color>.png` | One image per product and colour; `image_s3_key` in the CSV points at `catalog/<product_id>/<color>.png` |
 | `sample-data/queries/*.png`, `queries.json` | Customer-style photos (new background, tilt, lighting) and the expected answer for each |
 
-**1. Deploy** (once; see Deploy above for prerequisites, region and Bedrock access):
+**1. Deploy** (once; see Deploy above for prerequisites, region and the Bedrock check):
 ```bash
-cdk bootstrap && cdk deploy
+npx aws-cdk@2 bootstrap && npx aws-cdk@2 deploy
 ```
 
 **2. Load the feed.** This uploads the images to the stack's S3 bucket and queues every CSV row for ingestion. It needs the AWS CLI,
-credentials for the same account and region as the stack, and `pip install boto3`:
+credentials for the same account and region as the stack, and `pip install boto3`. `git pull` first if `sample-data/` is missing:
 ```bash
+pip install boto3 pillow
+chmod +x scripts/*.sh
 scripts/load_sample_catalog.sh sample-data          # optional 2nd argument: stack name, default VisualSearchStack
 ```
 
@@ -145,7 +166,12 @@ QUEUE=$(aws cloudformation describe-stacks --stack-name VisualSearchStack \
 aws sqs get-queue-attributes --queue-url "$QUEUE" \
     --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
 ```
-If messages keep failing they land in the dead-letter queue (`IngestDLQ` in the SQS console); check the ingest Lambda's logs.
+While the Lambda is working, `ApproximateNumberOfMessagesNotVisible` shows the in-flight messages (up to 240); it should fall to 0 within a
+few minutes. If messages keep failing they land in the dead-letter queue (`IngestDLQ` in the SQS console); read the ingest Lambda's logs:
+```bash
+aws logs tail $(aws logs describe-log-groups --log-group-name-prefix /aws/lambda/VisualSearchStack-Ingest \
+  --query "logGroups[0].logGroupName" --output text) --since 15m | tail -40
+```
 
 **4. Run the end-to-end test** against the deployed API:
 ```bash
@@ -181,6 +207,20 @@ The scripted scenarios are listed in `sample-data/queries.json` (ids `stock001` 
 
 To use your own products instead, replace `sample-data/catalog.csv` and the images with yours (same columns), or load your own feed
 as shown under Deploy.
+
+## Troubleshooting a first deploy
+
+| Symptom | Cause and fix |
+|---|---|
+| `aws bedrock ... The provided model identifier is invalid` | The CLI region does not offer the model (e.g. us-west-1). `aws configure set region us-west-2`, open a new terminal, and redeploy there (`cdk bootstrap` again for the new region) |
+| `AccessDeniedException ... not authorized to perform: bedrock:...` | The IAM user lacks permissions. Attach a policy that allows the deploy (see Prerequisites) |
+| `cdk: command not found` / `npx: command not found` | Node.js is not installed, or Terminal was not restarted after installing it |
+| `AttributeError: ... 'ForwardRef' has no attribute '_evaluate'` | The venv uses a Python that is too new. Recreate it with 3.12 or 3.13 |
+| `pip: ssl module is unavailable` | The Python was built without OpenSSL. Use the python.org installer instead |
+| `No sample-data/catalog.csv` | Old clone: `git pull` (or `python scripts/generate_sample_catalog.py`) |
+| Ingest Lambda logs `ValidationException ... Operation not allowed` on InvokeModel | Bedrock is not enabled for the AWS account (every model fails, not only Titan). Add a valid payment method, check for any pending account verification, then open an AWS Support case ("Account and billing", free) asking for Bedrock invocation in your region. IAM and the code cannot fix this |
+| e2e test: `catalog not searchable after 180s` | Ingestion has not finished or is failing: check the queue counts, the dead-letter queue and the ingest Lambda logs (Try it on AWS, step 3) |
+| e2e test: `HTTP 403` | Missing or wrong `x-api-key`: re-read it with the `get-api-keys` command in step 4 |
 
 ## Testing
 
