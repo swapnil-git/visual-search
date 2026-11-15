@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Loads the generated sample catalog into a DEPLOYED stack: uploads the images to S3 and queues the feed.
-#   scripts/load_sample_catalog.sh [data-dir=testdata] [stack-name=VisualSearchStack]
+#   scripts/load_sample_catalog.sh [data-dir=sample-data] [stack-name=VisualSearchStack]
 # Needs: AWS CLI + credentials, python3 + boto3 (pip install boto3), and `python scripts/generate_sample_catalog.py` run first.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-DATA="${1:-testdata}"; STACK="${2:-VisualSearchStack}"
+DATA="${1:-sample-data}"; STACK="${2:-VisualSearchStack}"
 [[ -f "$DATA/catalog.csv" ]] || { echo "No $DATA/catalog.csv: run scripts/generate_sample_catalog.py first." >&2; exit 1; }
 out() { aws cloudformation describe-stacks --stack-name "$STACK" \
         --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue" --output text; }

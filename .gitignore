@@ -4,4 +4,3 @@ cdk.out/
 layers/
 .venv/
 *.tar.gz
-testdata/

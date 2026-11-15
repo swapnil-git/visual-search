@@ -123,7 +123,7 @@ class LocalImageStore(ImageStore):
 
     @classmethod
     def from_env(cls):
-        return cls(os.environ.get("LOCAL_IMAGE_ROOT", "testdata/catalog_images"))
+        return cls(os.environ.get("LOCAL_IMAGE_ROOT", "sample-data/catalog_images"))
 
     def get(self, key):
         rel = key.split("/", 1)[1] if "/" in key else key

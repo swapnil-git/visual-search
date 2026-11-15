@@ -17,6 +17,7 @@ sql/schema.mysql.sql        MySQL schema, for CATALOG_STORE=mysql
 scripts/                    enqueue_catalog.py, generate_sample_catalog.py, local_server.py, e2e_test.py,
                             load_sample_catalog.sh, teardown.sh, build_mysql_layer.sh
 tests/test_logic.py         offline unit tests
+sample-data/                a ready-made 20-product feed, catalog images and labelled test photos
 docs/DESIGN.md              design doc
 .github/workflows/ci.yml    CI: unit tests, cdk synth, local end-to-end test
 ```
@@ -106,7 +107,7 @@ Enable the embedding model in the Bedrock console first. Flags:
 Lambdas in a VPC need a NAT gateway or VPC endpoints for Bedrock, Rekognition, S3 and Secrets Manager.
 Use RDS Proxy in front of MySQL; Lambdas open many short connections.
 
-Load the catalog:
+Load a catalog: use the sample feed (next section) to try the system, or your own feed:
 ```bash
 aws s3 sync ./images s3://<ImageBucketName>/catalog/
 QUEUE_URL=<IngestQueueUrl> python scripts/enqueue_catalog.py catalog.csv
@@ -114,26 +115,91 @@ QUEUE_URL=<IngestQueueUrl> python scripts/enqueue_catalog.py catalog.csv
 CSV: `product_id,name,brand,category,description,url,color,size,sku,barcode,price,currency,stock,image_s3_key`
 (`stock` = integer, or JSON per store such as `{"store1": 3, "store2": 0}`).
 
+## Try it on AWS with the sample feed
+
+The repo includes a ready-made feed in [`sample-data/`](sample-data/): 20 products, 240 SKUs (3 colours x 4 sizes each), 60 catalog
+images, and 44 labelled test photos. The products are drawn garments (tees, long sleeves, trousers, dresses, shorts), so this tests the
+system end to end but does not measure accuracy on real products.
+
+| File | Contents |
+|---|---|
+| `sample-data/catalog.csv` | The feed: one row per SKU, in the CSV format above, with barcodes and per-store stock (`store1`..`store3`) |
+| `sample-data/catalog_images/<product_id>/<color>.png` | One image per product and colour; `image_s3_key` in the CSV points at `catalog/<product_id>/<color>.png` |
+| `sample-data/queries/*.png`, `queries.json` | Customer-style photos (new background, tilt, lighting) and the expected answer for each |
+
+**1. Deploy** (once; see Deploy above for prerequisites, region and Bedrock access):
+```bash
+cdk bootstrap && cdk deploy
+```
+
+**2. Load the feed.** This uploads the images to the stack's S3 bucket and queues every CSV row for ingestion. It needs the AWS CLI,
+credentials for the same account and region as the stack, and `pip install boto3`:
+```bash
+scripts/load_sample_catalog.sh sample-data          # optional 2nd argument: stack name, default VisualSearchStack
+```
+
+**3. Wait for ingestion** (asynchronous, a minute or two for 240 rows). The queue is empty when both counts are 0:
+```bash
+QUEUE=$(aws cloudformation describe-stacks --stack-name VisualSearchStack \
+        --query "Stacks[0].Outputs[?OutputKey=='IngestQueueUrl'].OutputValue" --output text)
+aws sqs get-queue-attributes --queue-url "$QUEUE" \
+    --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+```
+If messages keep failing they land in the dead-letter queue (`IngestDLQ` in the SQS console); check the ingest Lambda's logs.
+
+**4. Run the end-to-end test** against the deployed API:
+```bash
+BASE=$(aws cloudformation describe-stacks --stack-name VisualSearchStack \
+       --query "Stacks[0].Outputs[?OutputKey=='SearchUrl'].OutputValue" --output text | sed 's#/search$##')
+KEY=$(aws apigateway get-api-keys --include-values --query "items[?name=='visual-search-pos'].value" --output text)
+python3 scripts/e2e_test.py --base "$BASE" --key "$KEY" --data sample-data --wait 180
+```
+It prints failures, a pass rate per kind (photo, photo + size, barcode, stock inference, inventory), latency, and score statistics for
+tuning `MIN_SCORE` / `HIGH_SCORE`. Photo retrieval must reach 85%; barcode, stock and inventory checks must all pass. The size-tag
+(`ocr`) and non-clothing (`negative`) checks are reported but never fail the run.
+
+**5. Try it by hand.** `req` builds a request body from a photo plus extra JSON fields:
+```bash
+req() { printf '{"image_base64":"%s",%s}' "$(base64 < "$1" | tr -d '\n')" "$2"; }
+call() { curl -s -X POST "$BASE/$1" -H "x-api-key: $KEY" -H "Content-Type: application/json" -d @-; }
+
+# photo + size: expect P014 (teal trousers), SKU P014-TEA-30, status "exact"
+req sample-data/queries/s007.png '"size":"30"' | call search
+
+# barcode only: expect SKU P001-GRY-S
+echo '{"barcode":"890000000001"}' | call search
+
+# stock inference: at store1 only size L of P001 (grey) is in stock -> status "inferred_by_stock", SKU P001-GRY-L
+req sample-data/queries/stock001.png '"store_id":"store1"' | call search
+
+# inventory check: P002 (yellow) XL is out of stock at store1 -> in_stock false, other_stores lists store2
+req sample-data/queries/inv001.png '"store_id":"store1","size":"XL"' | call inventory/check
+```
+The scripted scenarios are listed in `sample-data/queries.json` (ids `stock001` and `inv001`).
+
+**6. Clean up** when done (the stack has a standing cost): `scripts/teardown.sh --dry-run`, then `scripts/teardown.sh`.
+
+To use your own products instead, replace `sample-data/catalog.csv` and the images with yours (same columns), or load your own feed
+as shown under Deploy.
+
 ## Testing
 
 Four levels, cheapest first:
 
 1. **Unit tests** (seconds, no setup): `python3 tests/test_logic.py`. Variant logic, handlers, adapter selection. Runs in CI.
-2. **Local end-to-end** (no AWS, free). Generate a sample catalog, run the real handlers and ingest code against in-memory
+2. **Local end-to-end** (no AWS, free). Run the real handlers and ingest code against in-memory
    adapters, and score the answers:
    ```bash
    pip install -r scripts/requirements-dev.txt                 # Pillow
-   python3 scripts/generate_sample_catalog.py --out testdata   # feed + images + labelled queries
-   python3 scripts/local_server.py --data testdata &           # API on http://localhost:8080/v1
-   python3 scripts/e2e_test.py --base http://localhost:8080/v1 --data testdata --skip ocr
+   python3 scripts/local_server.py &                           # loads sample-data/, API on http://localhost:8080/v1
+   python3 scripts/e2e_test.py --base http://localhost:8080/v1 --skip ocr
    ```
    This checks the plumbing (ingest, variants, size hint, barcode, stock inference, inventory check). The local embedder is a
    crude pixel stand-in, so it says nothing about accuracy on real products. Also runs in CI.
 3. **Deployed end-to-end** (real Bedrock, OpenSearch, DynamoDB). After `cdk deploy`:
    ```bash
    scripts/load_sample_catalog.sh                  # uploads images, queues the feed (needs boto3: pip install boto3)
-   KEY=$(aws apigateway get-api-keys --include-values --query "items[?name=='visual-search-pos'].value" --output text)
-   python3 scripts/e2e_test.py --base <ApiUrl-without-/search> --key "$KEY" --data testdata --wait 180
+   # then follow "Try it on AWS with the sample feed" above for the exact commands
    ```
    `--wait` polls until the asynchronous ingestion has finished. `ocr` queries need Rekognition and are soft (reported, not failed);
    the `negative` queries (non-clothing photos) are soft too. The run prints score statistics to help set `MIN_SCORE`/`HIGH_SCORE`.
@@ -141,7 +207,7 @@ Four levels, cheapest first:
    above, put 3 to 5 phone photos of each of ~30 products in `queries.json` (same format, see `generate_sample_catalog.py`),
    and run `e2e_test.py`. Report top-1 and top-3 accuracy, and tune thresholds from the score statistics.
 
-The sample catalog is synthetic (drawn tees, long sleeves, pants, dresses, shorts in colours and patterns). It has scripted
+The sample feed (`sample-data/`, regenerate with `python3 scripts/generate_sample_catalog.py --out sample-data --clean`) is synthetic (drawn tees, long sleeves, pants, dresses, shorts in colours and patterns). It has scripted
 scenarios: a product where only one size is in stock at `store1` (`inferred_by_stock`), and one whose XL is out of stock at
 `store1` but in stock at `store2` (inventory check). Products that share a shape and pattern never share a colour, so every query
 has one right answer. Public datasets with real product photos (for example Kaggle's "Fashion Product Images (Small)" or the

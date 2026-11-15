@@ -2,9 +2,8 @@
 """Run the whole API on your laptop with no AWS: in-memory adapters + the real handlers.
 
   pip install -r scripts/requirements-dev.txt
-  python scripts/generate_sample_catalog.py --out testdata
-  python scripts/local_server.py --data testdata --port 8080
-  python scripts/e2e_test.py --base http://localhost:8080/v1 --data testdata --skip ocr
+  python scripts/local_server.py --data sample-data --port 8080
+  python scripts/e2e_test.py --base http://localhost:8080/v1 --data sample-data --skip ocr
 
 It loads catalog.csv through the real ingest code (same path as the SQS-fed Lambda), then serves
 POST /v1/search and POST /v1/inventory/check. The API key header is accepted and ignored.
@@ -33,7 +32,7 @@ def load_enqueue():
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--data", default="testdata", help="folder made by generate_sample_catalog.py")
+    ap.add_argument("--data", default="sample-data", help="feed folder (default: the committed sample-data/)")
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--min-score", default="0.5", help="MIN_SCORE for the crude local embedder (default 0.5)")
     a = ap.parse_args()

@@ -2,7 +2,7 @@
 """Generate a synthetic product catalog feed, catalog images, and labelled test queries.
 
   pip install -r scripts/requirements-dev.txt
-  python scripts/generate_sample_catalog.py --out testdata
+  python scripts/generate_sample_catalog.py --out sample-data --clean   # regenerates the committed feed (20 products, seed 7)
 
 Outputs (under --out):
   catalog.csv             one row per variant (SKU): the feed that scripts/enqueue_catalog.py loads
@@ -195,7 +195,7 @@ def stock_for(p, color_idx, size, rng):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--out", default="testdata")
+    ap.add_argument("--out", default="sample-data")
     ap.add_argument("--products", type=int, default=20, help="number of products (max 60)")
     ap.add_argument("--visual-queries", type=int, default=20)
     ap.add_argument("--seed", type=int, default=7)

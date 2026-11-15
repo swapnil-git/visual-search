@@ -1,0 +1,573 @@
+{
+ "seed": 7,
+ "queries": [
+  {
+   "id": "v001",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P009",
+    "color": "pink",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v001.png"
+  },
+  {
+   "id": "v002",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P012",
+    "color": "green",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v002.png"
+  },
+  {
+   "id": "v003",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P009",
+    "color": "purple",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v003.png"
+  },
+  {
+   "id": "v004",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P005",
+    "color": "teal",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v004.png"
+  },
+  {
+   "id": "v005",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P004",
+    "color": "pink",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v005.png"
+  },
+  {
+   "id": "v006",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P009",
+    "color": "blue",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v006.png"
+  },
+  {
+   "id": "v007",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P001",
+    "color": "teal",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v007.png"
+  },
+  {
+   "id": "v008",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P001",
+    "color": "purple",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v008.png"
+  },
+  {
+   "id": "v009",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P006",
+    "color": "orange",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v009.png"
+  },
+  {
+   "id": "v010",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P008",
+    "color": "orange",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v010.png"
+  },
+  {
+   "id": "v011",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P017",
+    "color": "teal",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v011.png"
+  },
+  {
+   "id": "v012",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P002",
+    "color": "black",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v012.png"
+  },
+  {
+   "id": "v013",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P018",
+    "color": "red",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v013.png"
+  },
+  {
+   "id": "v014",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P007",
+    "color": "grey",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v014.png"
+  },
+  {
+   "id": "v015",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P013",
+    "color": "teal",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v015.png"
+  },
+  {
+   "id": "v016",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P013",
+    "color": "red",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v016.png"
+  },
+  {
+   "id": "v017",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P007",
+    "color": "purple",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v017.png"
+  },
+  {
+   "id": "v018",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P015",
+    "color": "purple",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v018.png"
+  },
+  {
+   "id": "v019",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P009",
+    "color": "pink",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v019.png"
+  },
+  {
+   "id": "v020",
+   "kind": "visual",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P016",
+    "color": "black",
+    "status": "size_required"
+   },
+   "soft": false,
+   "file": "queries/v020.png"
+  },
+  {
+   "id": "s001",
+   "kind": "visual_size",
+   "endpoint": "search",
+   "request": {
+    "size": "L"
+   },
+   "expect": {
+    "product_id": "P003",
+    "color": "yellow",
+    "size": "L",
+    "status": "exact",
+    "sku": "P003-YEL-L"
+   },
+   "soft": false,
+   "file": "queries/s001.png"
+  },
+  {
+   "id": "s002",
+   "kind": "visual_size",
+   "endpoint": "search",
+   "request": {
+    "size": "S"
+   },
+   "expect": {
+    "product_id": "P010",
+    "color": "grey",
+    "size": "S",
+    "status": "exact",
+    "sku": "P010-GRY-S"
+   },
+   "soft": false,
+   "file": "queries/s002.png"
+  },
+  {
+   "id": "s003",
+   "kind": "visual_size",
+   "endpoint": "search",
+   "request": {
+    "size": "32"
+   },
+   "expect": {
+    "product_id": "P007",
+    "color": "purple",
+    "size": "32",
+    "status": "exact",
+    "sku": "P007-PUR-32"
+   },
+   "soft": false,
+   "file": "queries/s003.png"
+  },
+  {
+   "id": "s004",
+   "kind": "visual_size",
+   "endpoint": "search",
+   "request": {
+    "size": "32"
+   },
+   "expect": {
+    "product_id": "P016",
+    "color": "green",
+    "size": "32",
+    "status": "exact",
+    "sku": "P016-GRN-32"
+   },
+   "soft": false,
+   "file": "queries/s004.png"
+  },
+  {
+   "id": "s005",
+   "kind": "visual_size",
+   "endpoint": "search",
+   "request": {
+    "size": "36"
+   },
+   "expect": {
+    "product_id": "P005",
+    "color": "yellow",
+    "size": "36",
+    "status": "exact",
+    "sku": "P005-YEL-36"
+   },
+   "soft": false,
+   "file": "queries/s005.png"
+  },
+  {
+   "id": "s006",
+   "kind": "visual_size",
+   "endpoint": "search",
+   "request": {
+    "size": "S"
+   },
+   "expect": {
+    "product_id": "P018",
+    "color": "green",
+    "size": "S",
+    "status": "exact",
+    "sku": "P018-GRN-S"
+   },
+   "soft": false,
+   "file": "queries/s006.png"
+  },
+  {
+   "id": "s007",
+   "kind": "visual_size",
+   "endpoint": "search",
+   "request": {
+    "size": "30"
+   },
+   "expect": {
+    "product_id": "P014",
+    "color": "teal",
+    "size": "30",
+    "status": "exact",
+    "sku": "P014-TEA-30"
+   },
+   "soft": false,
+   "file": "queries/s007.png"
+  },
+  {
+   "id": "s008",
+   "kind": "visual_size",
+   "endpoint": "search",
+   "request": {
+    "size": "XL"
+   },
+   "expect": {
+    "product_id": "P004",
+    "color": "purple",
+    "size": "XL",
+    "status": "exact",
+    "sku": "P004-PUR-XL"
+   },
+   "soft": false,
+   "file": "queries/s008.png"
+  },
+  {
+   "id": "s009",
+   "kind": "visual_size",
+   "endpoint": "search",
+   "request": {
+    "size": "34"
+   },
+   "expect": {
+    "product_id": "P011",
+    "color": "grey",
+    "size": "34",
+    "status": "exact",
+    "sku": "P011-GRY-34"
+   },
+   "soft": false,
+   "file": "queries/s009.png"
+  },
+  {
+   "id": "s010",
+   "kind": "visual_size",
+   "endpoint": "search",
+   "request": {
+    "size": "34"
+   },
+   "expect": {
+    "product_id": "P011",
+    "color": "teal",
+    "size": "34",
+    "status": "exact",
+    "sku": "P011-TEA-34"
+   },
+   "soft": false,
+   "file": "queries/s010.png"
+  },
+  {
+   "id": "b001",
+   "kind": "barcode",
+   "endpoint": "search",
+   "request": {
+    "barcode": "890000000199"
+   },
+   "expect": {
+    "product_id": "P017",
+    "sku": "P017-BLU-L"
+   },
+   "soft": false
+  },
+  {
+   "id": "b002",
+   "kind": "barcode",
+   "endpoint": "search",
+   "request": {
+    "barcode": "890000000084"
+   },
+   "expect": {
+    "product_id": "P007",
+    "sku": "P007-GRY-36"
+   },
+   "soft": false
+  },
+  {
+   "id": "b003",
+   "kind": "barcode",
+   "endpoint": "search",
+   "request": {
+    "barcode": "890000000042"
+   },
+   "expect": {
+    "product_id": "P004",
+    "sku": "P004-TEA-M"
+   },
+   "soft": false
+  },
+  {
+   "id": "stock001",
+   "kind": "stock_inferred",
+   "endpoint": "search",
+   "request": {
+    "store_id": "store1"
+   },
+   "expect": {
+    "product_id": "P001",
+    "status": "inferred_by_stock",
+    "size": "L",
+    "sku": "P001-GRY-L"
+   },
+   "soft": false,
+   "file": "queries/stock001.png"
+  },
+  {
+   "id": "inv001",
+   "kind": "inventory",
+   "endpoint": "inventory",
+   "request": {
+    "store_id": "store1",
+    "size": "XL"
+   },
+   "expect": {
+    "product_id": "P002",
+    "sku": "P002-YEL-XL",
+    "in_stock": false,
+    "other_store": "store2"
+   },
+   "soft": false,
+   "file": "queries/inv001.png"
+  },
+  {
+   "id": "ocr001",
+   "kind": "ocr",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P001",
+    "color": "grey",
+    "size": "S"
+   },
+   "soft": true,
+   "file": "queries/ocr001.png"
+  },
+  {
+   "id": "ocr002",
+   "kind": "ocr",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P002",
+    "color": "black",
+    "size": "M"
+   },
+   "soft": true,
+   "file": "queries/ocr002.png"
+  },
+  {
+   "id": "ocr003",
+   "kind": "ocr",
+   "endpoint": "search",
+   "request": {},
+   "expect": {
+    "product_id": "P003",
+    "color": "yellow",
+    "size": "XL"
+   },
+   "soft": true,
+   "file": "queries/ocr003.png"
+  },
+  {
+   "id": "neg001",
+   "kind": "negative",
+   "endpoint": "search",
+   "request": {},
+   "expect": {},
+   "soft": true,
+   "file": "queries/neg001.png"
+  },
+  {
+   "id": "neg002",
+   "kind": "negative",
+   "endpoint": "search",
+   "request": {},
+   "expect": {},
+   "soft": true,
+   "file": "queries/neg002.png"
+  },
+  {
+   "id": "neg003",
+   "kind": "negative",
+   "endpoint": "search",
+   "request": {},
+   "expect": {},
+   "soft": true,
+   "file": "queries/neg003.png"
+  }
+ ]
+}

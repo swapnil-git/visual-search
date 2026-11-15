@@ -2,9 +2,9 @@
 """End-to-end test: send the labelled queries in <data>/queries.json to a running API and score the answers.
 
   # against a deployed stack
-  python scripts/e2e_test.py --base https://<id>.execute-api.<region>.amazonaws.com/v1 --key <API_KEY> --data testdata
+  python scripts/e2e_test.py --base https://<id>.execute-api.<region>.amazonaws.com/v1 --key <API_KEY> --data sample-data
   # against scripts/local_server.py
-  python scripts/e2e_test.py --base http://localhost:8080/v1 --data testdata --skip ocr
+  python scripts/e2e_test.py --base http://localhost:8080/v1 --data sample-data --skip ocr
 
 Standard library only. Prints one line per query, a summary by kind, and score statistics to help you set
 MIN_SCORE / HIGH_SCORE. Exit code 0 = all hard checks passed, 1 = something failed, 2 = could not reach the API.
@@ -105,7 +105,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--base", required=True, help="API base including the stage, e.g. https://x.execute-api.us-east-1.amazonaws.com/v1")
     ap.add_argument("--key", default=os.environ.get("API_KEY"), help="x-api-key (or env API_KEY)")
-    ap.add_argument("--data", default="testdata")
+    ap.add_argument("--data", default="sample-data")
     ap.add_argument("--min-pass", type=float, default=0.85, help="required pass rate for visual and visual_size")
     ap.add_argument("--skip", default="", help="comma list of kinds to skip, e.g. ocr,negative")
     ap.add_argument("--wait", type=int, default=0, help="seconds to wait for the catalog to become searchable first")
