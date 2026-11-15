@@ -11,8 +11,6 @@ import os
 import sys
 import uuid
 
-import boto3
-
 PRODUCT_FIELDS = ["product_id", "name", "brand", "category", "description", "url"]
 VARIANT_FIELDS = ["sku", "barcode", "color", "size", "price", "currency", "stock"]
 
@@ -29,6 +27,7 @@ def row_to_msg(r):
 
 
 def main(path):
+    import boto3
     sqs = boto3.client("sqs")
     q = os.environ["QUEUE_URL"]
     batch, total = [], 0

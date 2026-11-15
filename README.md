@@ -96,6 +96,39 @@ QUEUE_URL=<IngestQueueUrl> python scripts/enqueue_catalog.py catalog.csv
 CSV: `product_id,name,brand,category,description,url,color,size,sku,barcode,price,currency,stock,image_s3_key`
 (`stock` = integer, or JSON per store such as `{"store1": 3, "store2": 0}`).
 
+## Testing
+
+Four levels, cheapest first:
+
+1. **Unit tests** (seconds, no setup): `python3 tests/test_logic.py`. Variant logic, handlers, adapter selection. Runs in CI.
+2. **Local end-to-end** (no AWS, free). Generate a sample catalog, run the real handlers and ingest code against in-memory
+   adapters, and score the answers:
+   ```bash
+   pip install -r scripts/requirements-dev.txt                 # Pillow
+   python3 scripts/generate_sample_catalog.py --out testdata   # feed + images + labelled queries
+   python3 scripts/local_server.py --data testdata &           # API on http://localhost:8080/v1
+   python3 scripts/e2e_test.py --base http://localhost:8080/v1 --data testdata --skip ocr
+   ```
+   This checks the plumbing (ingest, variants, size hint, barcode, stock inference, inventory check). The local embedder is a
+   crude pixel stand-in, so it says nothing about accuracy on real products. Also runs in CI.
+3. **Deployed end-to-end** (real Bedrock, OpenSearch, DynamoDB). After `cdk deploy`:
+   ```bash
+   scripts/load_sample_catalog.sh                  # uploads images, queues the feed (needs boto3: pip install boto3)
+   KEY=$(aws apigateway get-api-keys --include-values --query "items[?name=='visual-search-pos'].value" --output text)
+   python3 scripts/e2e_test.py --base <ApiUrl-without-/search> --key "$KEY" --data testdata --wait 180
+   ```
+   `--wait` polls until the asynchronous ingestion has finished. `ocr` queries need Rekognition and are soft (reported, not failed);
+   the `negative` queries (non-clothing photos) are soft too. The run prints score statistics to help set `MIN_SCORE`/`HIGH_SCORE`.
+4. **Your real catalog and real photos** (the only test that measures accuracy). Convert your product feed to the CSV format
+   above, put 3 to 5 phone photos of each of ~30 products in `queries.json` (same format, see `generate_sample_catalog.py`),
+   and run `e2e_test.py`. Report top-1 and top-3 accuracy, and tune thresholds from the score statistics.
+
+The sample catalog is synthetic (drawn tees, long sleeves, pants, dresses, shorts in colours and patterns). It has scripted
+scenarios: a product where only one size is in stock at `store1` (`inferred_by_stock`), and one whose XL is out of stock at
+`store1` but in stock at `store2` (inventory check). Products that share a shape and pattern never share a colour, so every query
+has one right answer. Public datasets with real product photos (for example Kaggle's "Fashion Product Images (Small)" or the
+Amazon Berkeley Objects dataset; check each licence) can supply real images; they lack sizes and stock, which you would synthesize.
+
 ## Tear down (after testing)
 
 ```bash

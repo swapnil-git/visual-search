@@ -42,3 +42,23 @@ jobs:
       - run: pip install -r requirements.txt
       - run: npm install -g aws-cdk@2
       - run: cdk synth --quiet
+
+  local-e2e:
+    # Whole pipeline on in-memory adapters: sample catalog -> ingest -> search / inventory -> scored answers.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scripts/requirements-dev.txt
+      - run: pip install -r scripts/requirements-dev.txt
+      - run: python scripts/generate_sample_catalog.py --out testdata
+      - name: Start local API and run end-to-end test
+        run: |
+          python scripts/local_server.py --data testdata --port 8080 > server.log 2>&1 &
+          for i in $(seq 60); do curl -s localhost:8080/ > /dev/null && break; sleep 1; done
+          python scripts/e2e_test.py --base http://localhost:8080/v1 --data testdata --skip ocr
+      - if: failure()
+        run: cat server.log

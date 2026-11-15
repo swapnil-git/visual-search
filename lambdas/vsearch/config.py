@@ -1,11 +1,13 @@
 """Chooses adapters from environment variables. Defaults reproduce the original AWS-native stack.
 
-  EMBEDDER      bedrock                    (default)
-  VECTOR_STORE  opensearch | solr          (default opensearch)
-  CATALOG_STORE dynamodb   | mysql         (default dynamodb)
+  EMBEDDER      bedrock  | local           (default bedrock)
+  VECTOR_STORE  opensearch | solr | local  (default opensearch)
+  CATALOG_STORE dynamodb   | mysql | local (default dynamodb)
   INVENTORY     embedded                   (stock read from the variant rows; default)
   OCR           rekognition | none         (default rekognition)
-  IMAGE_STORE   s3                         (default)
+  IMAGE_STORE   s3         | local           (default s3)
+
+'local' = in-memory test adapters for running on a laptop without AWS (scripts/local_server.py).
 
 Any value containing ':' is a dotted path to your own adapter, e.g.  VECTOR_STORE=mypkg.mod:MyStore
 (the class needs a `from_env()` classmethod, or a no-argument constructor).
@@ -20,19 +22,23 @@ from .pipeline import Services
 _A = "vsearch.adapters."
 REGISTRY = {
     "embedder": {"env": "EMBEDDER", "default": "bedrock",
-                 "options": {"bedrock": _A + "bedrock:BedrockTitanEmbedder"}},
+                 "options": {"bedrock": _A + "bedrock:BedrockTitanEmbedder",
+                             "local": _A + "local:LocalEmbedder"}},
     "vector_store": {"env": "VECTOR_STORE", "default": "opensearch",
                      "options": {"opensearch": _A + "opensearch:OpenSearchVectorStore",
-                                 "solr": _A + "solr:SolrVectorStore"}},
+                                 "solr": _A + "solr:SolrVectorStore",
+                                 "local": _A + "local:LocalVectorStore"}},
     "catalog": {"env": "CATALOG_STORE", "default": "dynamodb",
                 "options": {"dynamodb": _A + "dynamodb:DynamoDbCatalog",
-                            "mysql": _A + "mysql:MySqlCatalog"}},
+                            "mysql": _A + "mysql:MySqlCatalog",
+                            "local": _A + "local:LocalCatalog"}},
     "inventory": {"env": "INVENTORY", "default": "embedded",
                   "options": {"embedded": _A + "embedded_stock:EmbeddedStock"}},
     "ocr": {"env": "OCR", "default": "rekognition",
             "options": {"rekognition": _A + "rekognition:RekognitionReader", "none": None}},
     "images": {"env": "IMAGE_STORE", "default": "s3",
-               "options": {"s3": _A + "s3:S3ImageStore"}},
+               "options": {"s3": _A + "s3:S3ImageStore",
+                           "local": _A + "local:LocalImageStore"}},
 }
 
 
