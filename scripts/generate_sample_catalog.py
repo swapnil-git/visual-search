@@ -28,6 +28,8 @@ S = 512
 COLORS = {"red": (200, 40, 40), "blue": (40, 80, 200), "green": (40, 150, 70), "black": (30, 30, 30),
           "yellow": (235, 200, 40), "purple": (130, 60, 160), "orange": (235, 125, 30),
           "teal": (30, 160, 160), "pink": (235, 120, 170), "grey": (140, 140, 140)}
+COLOR_CODE = {"red": "RED", "blue": "BLU", "green": "GRN", "black": "BLK", "yellow": "YEL", "purple": "PUR",
+              "orange": "ORG", "teal": "TEA", "pink": "PNK", "grey": "GRY"}  # unique, unlike the first 3 letters
 TRIMS = {"navy": (20, 30, 80), "gold": (212, 175, 55), "brown": (110, 70, 40)}
 SHAPES = ["tshirt", "longsleeve", "pants", "dress", "shorts"]
 PATTERNS = ["solid", "stripes", "dots", "checks"]
@@ -216,7 +218,7 @@ def main():
             render(spec).save(path)
             for size in SIZES[p["shape"]]:
                 counter += 1
-                sku = f"{p['product_id']}-{color[:3].upper()}-{size}"
+                sku = f"{p['product_id']}-{COLOR_CODE[color]}-{size}"
                 sku_of[(p["product_id"], color, size)] = sku
                 barcode_of[sku] = f"8900{counter:08d}"
                 rows.append({
@@ -226,6 +228,7 @@ def main():
                     "url": f"https://shop.example.com/p/{p['product_id']}", "color": color, "size": size, "sku": sku,
                     "barcode": barcode_of[sku], "price": PRICE[p["shape"]], "currency": "USD",
                     "stock": json.dumps(stock_for(p, ci, size, rng)), "image_s3_key": f"catalog/{rel}"})
+    assert len({r["sku"] for r in rows}) == len(rows) and len({r["barcode"] for r in rows}) == len(rows), "duplicate SKU/barcode"
     with open(os.path.join(a.out, "catalog.csv"), "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=CSV_COLUMNS)
         w.writeheader()
